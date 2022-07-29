@@ -36,17 +36,6 @@
      */
     points: null,
 
-    /**
-     * WARNING: Feature in progress
-     * Calculate the exact bounding box taking in account strokeWidth on acute angles
-     * this will be turned to true by default on fabric 6.0
-     * maybe will be left in as an optimization since calculations may be slow
-     * @deprecated
-     * @type Boolean
-     * @default false
-     */
-    exactBoundingBox: false,
-
     cacheProperties: fabric.Object.prototype.cacheProperties.concat('points'),
 
     /**
@@ -85,16 +74,8 @@
     _setPositionDimensions: function(options) {
       options || (options = {});
       var calcDim = this._calcDimensions(options), correctLeftTop,
-          correctSizeX = this.exactBoundingBox
-                        ? this.strokeUniform
-                          ? this.strokeWidth/this.scaleX
-                          : this.strokeWidth
-                        : 0,
-          correctSizeY = this.exactBoundingBox
-                        ? this.strokeUniform
-                          ? this.strokeWidth/this.scaleY
-                          : this.strokeWidth
-                        : 0;
+          correctSizeX = this.strokeUniform ? this.strokeWidth / this.scaleX : this.strokeWidth,
+          correctSizeY = this.strokeUniform ? this.strokeWidth / this.scaleY : this.strokeWidth;
       this.width = calcDim.width - correctSizeX;
       this.height = calcDim.height - correctSizeY;
       if (!options.fromSVG) {
@@ -134,7 +115,7 @@
      */
     _calcDimensions: function() {
 
-      var points = this.exactBoundingBox ? this._projectStrokeOnPoints() : this.points,
+      var points = this._projectStrokeOnPoints(),
           minX = min(points, 'x') || 0,
           minY = min(points, 'y') || 0,
           maxX = max(points, 'x') || 0,
