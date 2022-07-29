@@ -570,6 +570,7 @@
               height: 900,
               fabricClass: 'Canvas',
               newModule: newModule ? 'stroke projection' : undefined,
+              disabled: fabric.isLikelyNode
             });
             newModule = false;
           });
@@ -608,7 +609,8 @@
               percentage: 0.001,
               width: 600,
               height: 900,
-              fabricClass: 'Canvas'
+              fabricClass: 'Canvas',
+              disabled: fabric.isLikelyNode
             });
           });
         });
