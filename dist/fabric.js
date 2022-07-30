@@ -931,7 +931,7 @@ fabric.CommonMethods = {
 
           if (fabric.util.hypot(miterVector.x, miterVector.y) / s <= strokeMiterLimit) {
             coords.push(A.add(miterVector));
-            coords.push(A.subtract(miterVector));
+            //coords.push(A.subtract(miterVector));
             return;
           }
         }
