@@ -357,7 +357,6 @@
     var rect = new fabric.Rect({ left: 0, top: 0, width: 50, height: 50 });
     canvas.add(rect);
     var count = 0;
-    var count2 = 0;
     var opt;
     canvas.on('object:modified', function(_opt) {
       count++;
@@ -563,8 +562,8 @@
     assert.deepEqual(fired, eventNames, 'bad drop event fired');
   });
 
-  QUnit.test('drag event cycle', function (assert) {
-    function testDragCycle(cycle, canDrop) {
+  QUnit.test('drag event cycle', async function (assert) {
+    async function testDragCycle(cycle, canDrop) {
       var c = new fabric.Canvas();
       var rect = new fabric.Rect({ width: 10, height: 10 });
       rect.canDrop = function () {
@@ -586,23 +585,23 @@
         event.clientY = 5;
         c.upperCanvasEl.dispatchEvent(event);
       });
-      c.dispose();
+      await c.dispose();
       assert.equal(canvasRegistry.length, cycle.length, 'should fire cycle on canvas');
       assert.deepEqual(canvasRegistry, cycle, 'should fire all events on canvas');
       return registery
     }
     var cycle, res;
     cycle = ['dragenter', 'dragover', 'dragover', 'dragover', 'drop'];
-    res = testDragCycle(cycle, true);
+    res = await testDragCycle(cycle, true);
     assert.deepEqual(res, cycle, 'should fire all events on rect');
     cycle = ['dragenter', 'dragover', 'dragover', 'dragover', 'dragleave'];
-    res = testDragCycle(cycle, true);
+    res = await testDragCycle(cycle, true);
     assert.deepEqual(res, cycle, 'should fire all events on rect');
     cycle = ['dragenter', 'dragover', 'dragover', 'dragover', 'drop'];
-    res = testDragCycle(cycle);
+    res = await testDragCycle(cycle);
     assert.deepEqual(res, cycle, 'should fire all events on rect');
     cycle = ['dragenter', 'dragover', 'dragover', 'dragover', 'dragleave'];
-    res = testDragCycle(cycle);
+    res = await testDragCycle(cycle);
     assert.deepEqual(res, cycle, 'should fire all events on rect');
   });
 
@@ -657,7 +656,7 @@
     var control = [];
     var targetControl = [];
     [o1, o2, o3].forEach(target => {
-      target.on(canvasEventName.replace(':', ''), (ev) => {
+      target.on(canvasEventName.replace(':', ''), () => {
         targetControl.push(target);
       });
     });
