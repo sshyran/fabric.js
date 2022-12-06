@@ -1,4 +1,5 @@
 import { fabric } from '../../HEADER';
+import { Base } from './Base';
 
 export type TEventCallback<T = any> = (options: T) => any;
 
@@ -11,7 +12,7 @@ type EventRegistryObject<
  * @tutorial {@link http://fabricjs.com/fabric-intro-part-2#events}
  * @see {@link http://fabricjs.com/events|Events demo}
  */
-export class Observable<EventSpec> {
+export class Observable<EventSpec> extends Base {
   private __eventListeners: Record<keyof EventSpec, TEventCallback[]> =
     {} as Record<keyof EventSpec, TEventCallback[]>;
 

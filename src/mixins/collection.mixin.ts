@@ -1,7 +1,9 @@
 import { fabric } from '../../HEADER';
 import type { FabricObject } from '../shapes/fabricObject.class';
+import { Base } from './Base';
 
-export function createCollectionMixin<T extends { new (...args: any[]): any }>(
+// https://www.typescriptlang.org/docs/handbook/mixins.html#constrained-mixins
+export function createCollectionMixin<T extends new (...args: any[]) => Base>(
   Klass: T
 ) {
   return class Collection extends Klass {
