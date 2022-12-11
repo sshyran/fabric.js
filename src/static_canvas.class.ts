@@ -10,7 +10,7 @@ import { TSVGReviver } from './mixins/object.svg_export';
 import { CommonMethods } from './mixins/shared_methods.mixin';
 import { Pattern } from './pattern.class';
 import { Point } from './point.class';
-import { FabricObject } from './shapes/fabricObject.class';
+import type { FabricObject } from './shapes/fabricObject.class';
 import { TCachedFabricObject } from './shapes/object.class';
 import { Rect } from './shapes/rect.class';
 import type {
