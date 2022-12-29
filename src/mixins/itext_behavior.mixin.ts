@@ -39,7 +39,7 @@ export abstract class ITextBehaviorMixin<
   abstract compositionStart: number;
   abstract compositionEnd: number;
 
-  abstract hiddenTextarea: HTMLTextAreaElement;
+  abstract hiddenTextarea: HTMLTextAreaElement | null;
 
   /**
    * Helps determining when the text is in composition, so that the cursor

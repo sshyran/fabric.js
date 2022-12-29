@@ -1,5 +1,3 @@
-//@ts-nocheck
-
 import { fabric } from '../../HEADER';
 import { config } from '../config';
 import { TPointerEvent } from '../typedefs';
@@ -34,8 +32,6 @@ export abstract class ITextKeyBehaviorMixin<
    * For functionalities on keyDown + ctrl || cmd
    */
   ctrlKeysMapDown: TKeyMapIText;
-
-  hiddenTextarea: HTMLTextAreaElement | null;
 
   /**
    * DOM container to append the hiddenTextarea.
