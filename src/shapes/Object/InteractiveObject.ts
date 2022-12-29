@@ -84,7 +84,7 @@ export class InteractiveFabricObject<
 
   /**
    * internal boolean to signal the code that the object is
-   * part of the draggin action.
+   * part of the dragging action.
    * @TODO: discuss isMoving and isDragging being not adequate enough
    * they need to be either both private or more generic
    * Canvas class needs to see this variable
