@@ -2,7 +2,11 @@ import { fabric } from '../../HEADER';
 import { config } from '../config';
 import { TPointerEvent } from '../typedefs';
 import { capValue } from '../util/misc/capValue';
-import { ITextBehaviorMixin, ITextEvents } from './itext_behavior.mixin';
+import {
+  ITextBehaviorMixin,
+  ITextEvents,
+  TInitializedIText,
+} from './itext_behavior.mixin';
 import type { TKeyMapIText } from './itext_key_const';
 
 export abstract class ITextKeyBehaviorMixin<
@@ -50,7 +54,9 @@ export abstract class ITextKeyBehaviorMixin<
   /**
    * Initializes hidden textarea (needed to bring up keyboard in iOS)
    */
-  initHiddenTextarea() {
+  initHiddenTextarea(
+    this: TInitializedIText<this, EventSpec>
+  ): asserts this is TInitializedIText<this, EventSpec> {
     this.hiddenTextarea = fabric.document.createElement('textarea');
     this.hiddenTextarea.setAttribute('autocapitalize', 'off');
     this.hiddenTextarea.setAttribute('autocorrect', 'off');
