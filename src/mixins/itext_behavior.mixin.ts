@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { fabric } from '../../HEADER';
 import {
   ObjectEvents,
@@ -26,7 +28,7 @@ export type ITextEvents = ObjectEvents & {
          */
         index: number;
         /**
-         * calling event context
+         * the name of the event that triggered the change
          */
         action: string;
       }

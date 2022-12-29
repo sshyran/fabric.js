@@ -1,6 +1,8 @@
+// @ts-nocheck
+
 import { fabric } from '../../HEADER';
 import { config } from '../config';
-import { TPointerEvent } from '../typedefs';
+import { TPointerEvent } from '../EventTypeDefs';
 import { capValue } from '../util/misc/capValue';
 import {
   ITextBehaviorMixin,
