@@ -19,10 +19,28 @@ const reNonWord = /[ \n\.,;!\?\-]/;
 
 export type ITextEvents = ObjectEvents & {
   'selection:changed': never;
-  changed: never;
+  changed:
+    | {
+        /**
+         * selection start index
+         */
+        index: number;
+        /**
+         * calling event context
+         */
+        action: string;
+      }
+    | never;
   tripleclick: TPointerEventInfo;
   'editing:entered': never;
   'editing:exited': never;
+};
+
+export type TInitializedIText<
+  T extends ITextBehaviorMixin<E>,
+  E extends ITextEvents
+> = T & {
+  hiddenTextarea: HTMLTextAreaElement;
 };
 
 export abstract class ITextBehaviorMixin<
@@ -58,7 +76,7 @@ export abstract class ITextBehaviorMixin<
   protected __selectionStartOnMouseDown: number;
   private __dragImageDisposer: VoidFunction;
   private __dragStartFired: boolean;
-  protected __dragStartSelection: {
+  protected __dragStartSelection?: {
     selectionStart: number;
     selectionEnd: number;
   };
@@ -66,19 +84,21 @@ export abstract class ITextBehaviorMixin<
   protected selected: boolean;
   protected __lastSelected: boolean;
   protected cursorOffsetCache: { left?: number; top?: number } = {};
-  protected _savedProps: {
+  protected _savedProps?: {
     hasControls: boolean;
     borderColor: string;
     lockMovementX: boolean;
     lockMovementY: boolean;
     selectable: boolean;
-    hoverCursor: string | null;
-    defaultCursor: string;
-    moveCursor: CSSStyleDeclaration['cursor'];
+    hoverCursor: CSSStyleDeclaration['cursor'] | null;
+    defaultCursor?: CSSStyleDeclaration['cursor'];
+    moveCursor?: CSSStyleDeclaration['cursor'];
   };
   protected _selectionDirection: 'left' | 'right' | null;
 
-  abstract initHiddenTextarea(): void;
+  abstract initHiddenTextarea(
+    e?: TPointerEvent
+  ): asserts this is TInitializedIText<this, EventSpec>;
   abstract initCursorSelectionHandlers(): void;
   abstract initDoubleClickSimulation(): void;
   abstract _fireSelectionChanged(): void;
@@ -86,7 +106,7 @@ export abstract class ITextBehaviorMixin<
   abstract getSelectionStartFromPointer(e: TPointerEvent): number;
   abstract _getCursorBoundaries(
     index: number,
-    skipCaching: boolean
+    skipCaching?: boolean
   ): {
     left: number;
     top: number;
@@ -118,6 +138,7 @@ export abstract class ITextBehaviorMixin<
   onDeselect() {
     this.isEditing && this.exitEditing();
     this.selected = false;
+    return false;
   }
 
   /**
@@ -444,7 +465,7 @@ export abstract class ITextBehaviorMixin<
   /**
    * Enters editing state
    */
-  enterEditing(e) {
+  enterEditing(e?: TPointerEvent) {
     if (this.isEditing || !this.editable) {
       return;
     }
@@ -466,13 +487,11 @@ export abstract class ITextBehaviorMixin<
     this._tick();
     this.fire('editing:entered');
     this._fireSelectionChanged();
-    if (!this.canvas) {
-      return this;
+    if (this.canvas) {
+      this.canvas.fire('text:editing:entered', { target: this });
+      this.initMouseMoveHandler();
+      this.canvas.requestRenderAll();
     }
-    this.canvas.fire('text:editing:entered', { target: this });
-    this.initMouseMoveHandler();
-    this.canvas.requestRenderAll();
-    return this;
   }
 
   exitEditingOnOthers(canvas: Canvas) {
@@ -496,7 +515,7 @@ export abstract class ITextBehaviorMixin<
   /**
    * @private
    */
-  mouseMoveHandler(options) {
+  mouseMoveHandler(options: TPointerEventInfo) {
     if (!this.__isMousedown || !this.isEditing) {
       return;
     }
@@ -851,7 +870,7 @@ export abstract class ITextBehaviorMixin<
   /**
    * convert from textarea to grapheme indexes
    */
-  fromStringToGraphemeSelection(start, end, text) {
+  fromStringToGraphemeSelection(start: number, end: number, text: string) {
     const smallerTextStart = text.slice(0, start),
       graphemeStart = this.graphemeSplit(smallerTextStart).length;
     if (start === end) {
@@ -868,13 +887,13 @@ export abstract class ITextBehaviorMixin<
   /**
    * convert from fabric to textarea values
    */
-  fromGraphemeToStringSelection(start, end, _text) {
-    const smallerTextStart = _text.slice(0, start),
+  fromGraphemeToStringSelection(start: number, end: number, text: string[]) {
+    const smallerTextStart = text.slice(0, start),
       graphemeStart = smallerTextStart.join('').length;
     if (start === end) {
       return { selectionStart: graphemeStart, selectionEnd: graphemeStart };
     }
-    const smallerTextEnd = _text.slice(start, end),
+    const smallerTextEnd = text.slice(start, end),
       graphemeEnd = smallerTextEnd.join('').length;
     return {
       selectionStart: graphemeStart,
@@ -933,8 +952,9 @@ export abstract class ITextBehaviorMixin<
   updateTextareaPosition() {
     if (this.selectionStart === this.selectionEnd) {
       const style = this._calcTextareaPosition();
-      this.hiddenTextarea.style.left = style.left;
-      this.hiddenTextarea.style.top = style.top;
+      const { hiddenTextarea } = this as TInitializedIText<this, EventSpec>;
+      hiddenTextarea.style.left = style.left;
+      hiddenTextarea.style.top = style.top;
     }
   }
 
@@ -944,7 +964,7 @@ export abstract class ITextBehaviorMixin<
    */
   _calcTextareaPosition() {
     if (!this.canvas) {
-      return { left: 1, top: 1 };
+      return { left: '1px', top: '1px' };
     }
     const desiredPosition = this.inCompositionMode
         ? this.compositionStart
@@ -995,9 +1015,9 @@ export abstract class ITextBehaviorMixin<
     p.y += this.canvas._offset.top;
 
     return {
-      left: p.x + 'px',
-      top: p.y + 'px',
-      fontSize: charHeight + 'px',
+      left: `${p.x}px`,
+      top: `${p.y}px`,
+      fontSize: `${charHeight}px`,
       charHeight: charHeight,
     };
   }
@@ -1034,8 +1054,8 @@ export abstract class ITextBehaviorMixin<
     this.lockMovementY = this._savedProps.lockMovementY;
 
     if (this.canvas) {
-      this.canvas.defaultCursor = this._savedProps.defaultCursor;
-      this.canvas.moveCursor = this._savedProps.moveCursor;
+      this.canvas.defaultCursor = this._savedProps.defaultCursor || '';
+      this.canvas.moveCursor = this._savedProps.moveCursor || '';
     }
 
     delete this._savedProps;
@@ -1130,14 +1150,12 @@ export abstract class ITextBehaviorMixin<
       // remove and shift left on the same line
       if (this.styles[lineStart]) {
         styleObj = this.styles[lineStart];
-        let diff = charEnd - charStart,
-          numericChar,
-          _char;
+        const diff = charEnd - charStart;
         for (i = charStart; i < charEnd; i++) {
           delete styleObj[i];
         }
-        for (_char in this.styles[lineStart]) {
-          numericChar = parseInt(_char, 10);
+        for (const _char in this.styles[lineStart]) {
+          const numericChar = parseInt(_char, 10);
           if (numericChar >= charEnd) {
             styleObj[numericChar - diff] = styleObj[_char];
             delete styleObj[_char];
@@ -1313,7 +1331,7 @@ export abstract class ITextBehaviorMixin<
       addedLines = [0],
       linesLength = 0;
     // get an array of how many char per lines are being added.
-    for (var i = 0; i < insertedText.length; i++) {
+    for (let i = 0; i < insertedText.length; i++) {
       if (insertedText[i] === '\n') {
         linesLength++;
         addedLines[linesLength] = 0;
