@@ -104,7 +104,7 @@ export abstract class ITextClickBehaviorMixin<
    * initializing a mousedDown on a text area will cancel fabricjs knowledge of
    * current compositionMode. It will be set to false.
    */
-  _mouseDownHandler(options: TPointerEventInfo) {
+  _mouseDownHandler(options: TPointerEventInfo<MouseEvent>) {
     if (
       !this.canvas ||
       !this.editable ||
@@ -134,7 +134,7 @@ export abstract class ITextClickBehaviorMixin<
    * can be overridden to do something different.
    * Scope of this implementation is: verify the object is already selected when mousing down
    */
-  _mouseDownHandlerBefore(options: TPointerEventInfo) {
+  _mouseDownHandlerBefore(options: TPointerEventInfo<MouseEvent>) {
     if (
       !this.canvas ||
       !this.editable ||
@@ -173,7 +173,7 @@ export abstract class ITextClickBehaviorMixin<
    * standard handler for mouse up, overridable
    * @private
    */
-  mouseUpHandler(options: TPointerEventInfo) {
+  mouseUpHandler(options: TPointerEventInfo<MouseEvent>) {
     this.__isMousedown = false;
     if (
       !this.editable ||
