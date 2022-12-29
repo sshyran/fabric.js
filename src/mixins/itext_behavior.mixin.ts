@@ -1,10 +1,12 @@
-// @ts-nocheck
-
 import { fabric } from '../../HEADER';
-import { ObjectEvents, TEvent, TPointerEventInfo } from '../EventTypeDefs';
+import {
+  ObjectEvents,
+  TEvent,
+  TPointerEvent,
+  TPointerEventInfo,
+} from '../EventTypeDefs';
 import { Point } from '../point.class';
 import { Text } from '../shapes/text.class';
-import { TPointerEvent } from '../typedefs';
 import { setStyle } from '../util/dom_style';
 import { removeFromArray } from '../util/internals';
 import { createCanvasElement } from '../util/misc/dom';
@@ -56,7 +58,6 @@ export abstract class ITextBehaviorMixin<
   protected __selectionStartOnMouseDown: number;
   private __dragImageDisposer: VoidFunction;
   private __dragStartFired: boolean;
-  protected __isDragging: boolean;
   protected __dragStartSelection: {
     selectionStart: number;
     selectionEnd: number;
@@ -180,40 +181,37 @@ export abstract class ITextBehaviorMixin<
    */
   _tick() {
     this._currentTickState = this._animateCursor(
-      this,
       1,
       this.cursorDuration,
-      '_onTickComplete'
+      this._onTickComplete
     );
   }
 
   /**
    * @private
    */
-  _animateCursor(obj, targetOpacity, duration, completeMethod) {
+  _animateCursor(
+    targetOpacity: number,
+    duration: number,
+    onComplete: () => void
+  ) {
     const tickState = {
       isAborted: false,
-      abort: function () {
+      abort() {
         this.isAborted = true;
       },
     };
 
-    obj.animate('_currentCursorOpacity', targetOpacity, {
+    this.animate('_currentCursorOpacity', targetOpacity, {
       duration: duration,
-      onComplete: function () {
-        if (!tickState.isAborted) {
-          obj[completeMethod]();
-        }
-      },
-      onChange: function () {
+      onComplete: () => !tickState.isAborted && onComplete.call(this),
+      onChange: () => {
         // we do not want to animate a selection, only cursor
-        if (obj.canvas && obj.selectionStart === obj.selectionEnd) {
-          obj.renderCursorOrSelection();
+        if (this.canvas && this.selectionStart === this.selectionEnd) {
+          this.renderCursorOrSelection();
         }
       },
-      abort: function () {
-        return tickState.isAborted;
-      },
+      abort: () => tickState.isAborted,
     });
     return tickState;
   }
@@ -227,10 +225,9 @@ export abstract class ITextBehaviorMixin<
     }
     this._cursorTimeout1 = setTimeout(() => {
       this._currentTickCompleteState = this._animateCursor(
-        this,
         0,
         this.cursorDuration / 2,
-        '_tick'
+        this._tick
       );
     }, 100);
   }
