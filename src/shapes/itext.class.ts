@@ -10,14 +10,7 @@ import {
 } from '../mixins/itext_key_const';
 import { classRegistry } from '../util/class_registry';
 import { TClassProperties, TFiller } from '../typedefs';
-
-export type ITextEvents = ObjectEvents & {
-  'selection:changed': never;
-  changed: never;
-  tripleclick: TPointerEventInfo;
-  'editing:entered': never;
-  'editing:exited': never;
-};
+import { ITextEvents } from '../mixins/itext_behavior.mixin';
 
 /**
  * IText class (introduced in <b>v1.4</b>) Events are also fired with "text:"
@@ -66,7 +59,9 @@ export type ITextEvents = ObjectEvents & {
  *   Select line:                    triple click
  * </pre>
  */
-export class IText extends ITextClickBehaviorMixin<ITextEvents> {
+export class IText<
+  EventSpec extends ITextEvents = ITextEvents
+> extends ITextClickBehaviorMixin<EventSpec> {
   /**
    * Index where text selection starts (or where cursor is when there is no selection)
    * @type Number

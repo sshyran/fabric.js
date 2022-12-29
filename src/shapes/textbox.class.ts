@@ -5,6 +5,7 @@ import { TClassProperties } from '../typedefs';
 import { IText } from './itext.class';
 import { textDefaultValues } from './text.class';
 import { classRegistry } from '../util/class_registry';
+import { ITextEvents } from '../mixins/itext_behavior.mixin';
 
 /**
  * Textbox class, based on IText, allows the user to resize the text rectangle
@@ -12,7 +13,9 @@ import { classRegistry } from '../util/class_registry';
  * user can only change width. Height is adjusted automatically based on the
  * wrapping of lines.
  */
-export class Textbox extends IText {
+export class Textbox<
+  EventSpec extends ITextEvents = ITextEvents
+> extends IText<EventSpec> {
   /**
    * Minimum width of textbox, in pixels.
    * @type Number
