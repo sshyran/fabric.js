@@ -1,7 +1,9 @@
-//@ts-nocheck
-import { ObjectEvents } from '../EventTypeDefs';
+import {
+  ObjectEvents,
+  TPointerEvent,
+  TPointerEventInfo,
+} from '../EventTypeDefs';
 import { IPoint, Point } from '../point.class';
-import { TPointerEvent, TransformEvent } from '../typedefs';
 import { stopEvent } from '../util/dom_event';
 import { invertTransform, transformPoint } from '../util/misc/matrix';
 import { ITextKeyBehaviorMixin } from './itext_key_behavior.mixin';
@@ -15,7 +17,7 @@ export abstract class ITextClickBehaviorMixin<
   private __newClickTime: number;
 
   /**
-   * Initializes "dbclick" event handler
+   * Initializes "dblclick" event handler
    */
   initDoubleClickSimulation() {
     this.__lastClickTime = +new Date();
@@ -32,7 +34,7 @@ export abstract class ITextClickBehaviorMixin<
    * Default event handler to simulate triple click
    * @private
    */
-  onMouseDown(options: TransformEvent) {
+  onMouseDown(options: TPointerEventInfo) {
     if (!this.canvas) {
       return;
     }
@@ -69,7 +71,7 @@ export abstract class ITextClickBehaviorMixin<
   /**
    * Default handler for double click, select a word
    */
-  doubleClickHandler(options: TransformEvent) {
+  doubleClickHandler(options: TPointerEventInfo) {
     if (!this.isEditing) {
       return;
     }
@@ -79,7 +81,7 @@ export abstract class ITextClickBehaviorMixin<
   /**
    * Default handler for triple click, select a line
    */
-  tripleClickHandler(options: TransformEvent) {
+  tripleClickHandler(options: TPointerEventInfo) {
     if (!this.isEditing) {
       return;
     }
@@ -102,7 +104,7 @@ export abstract class ITextClickBehaviorMixin<
    * initializing a mousedDown on a text area will cancel fabricjs knowledge of
    * current compositionMode. It will be set to false.
    */
-  _mouseDownHandler(options: TransformEvent) {
+  _mouseDownHandler(options: TPointerEventInfo) {
     if (
       !this.canvas ||
       !this.editable ||
@@ -132,7 +134,7 @@ export abstract class ITextClickBehaviorMixin<
    * can be overridden to do something different.
    * Scope of this implementation is: verify the object is already selected when mousing down
    */
-  _mouseDownHandlerBefore(options: TransformEvent) {
+  _mouseDownHandlerBefore(options: TPointerEventInfo) {
     if (
       !this.canvas ||
       !this.editable ||
@@ -142,7 +144,7 @@ export abstract class ITextClickBehaviorMixin<
     }
     // we want to avoid that an object that was selected and then becomes unselectable,
     // may trigger editing mode in some way.
-    this.selected = this === this.canvas._activeObject;
+    this.selected = this === (this.canvas._activeObject as any);
     // text dragging logic
     const newSelection = this.getSelectionStartFromPointer(options.e);
     this.__isDragging =
@@ -171,7 +173,7 @@ export abstract class ITextClickBehaviorMixin<
    * standard handler for mouse up, overridable
    * @private
    */
-  mouseUpHandler(options: TransformEvent) {
+  mouseUpHandler(options: TPointerEventInfo) {
     this.__isMousedown = false;
     if (
       !this.editable ||
@@ -183,7 +185,7 @@ export abstract class ITextClickBehaviorMixin<
     }
 
     if (this.canvas) {
-      const currentActive = this.canvas._activeObject;
+      const currentActive = this.canvas._activeObject as any;
       if (currentActive && currentActive !== this) {
         // avoid running this logic when there is an active object
         // this because is possible with shift click and fast clicks,
@@ -232,9 +234,12 @@ export abstract class ITextClickBehaviorMixin<
    * @param {IPoint} [pointer] Pointer to operate upon (instead of event)
    * @return {Point} Coordinates of a pointer (x, y)
    */
-  getLocalPointer(e: TPointerEvent, pointer: IPoint): Point {
+  getLocalPointer(
+    e: TPointerEvent,
+    pointer: IPoint = this.canvas!.getPointer(e)
+  ): Point {
     return transformPoint(
-      pointer || this.canvas.getPointer(e),
+      pointer,
       invertTransform(this.calcTransformMatrix())
     ).add(new Point(this.width / 2, this.height / 2));
   }
